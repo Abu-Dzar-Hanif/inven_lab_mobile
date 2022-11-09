@@ -37,8 +37,13 @@ class _DataStokState extends State<DataStok> {
     } else {
       final data = jsonDecode(response.body);
       data.forEach((api) {
-        final ab = new StokModel(api['no'], api['nama_barang'],
-            api['nama_jenis'], api['nama_brand'], api['stok']);
+        final ab = new StokModel(
+            api['no'],
+            api['id_barang'],
+            api['nama_barang'],
+            api['nama_jenis'],
+            api['nama_brand'],
+            api['stok']);
         list.add(ab);
       });
       setState(() {
@@ -66,6 +71,7 @@ class _DataStokState extends State<DataStok> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -121,6 +127,16 @@ class _DataStokState extends State<DataStok> {
                               defaultVerticalAlignment:
                                   TableCellVerticalAlignment.middle,
                               children: <TableRow>[
+                                TableRow(children: <Widget>[
+                                  ListTile(title: Text("Kode Barang")),
+                                  ListTile(
+                                      title: Text(
+                                    x.id_barang.toString(),
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal),
+                                  )),
+                                ]),
                                 TableRow(children: <Widget>[
                                   ListTile(title: Text("Nama Barang")),
                                   ListTile(

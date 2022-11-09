@@ -5,8 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:async/async.dart';
-import 'package:inven_lab/model/BarangModel.dart';
+import 'package:inven_lab/model/TujuanModel.dart';
 import 'package:inven_lab/model/api.dart';
+import 'package:inven_lab/view/barang_masuk/DataTransaksi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TambahBm extends StatefulWidget {
@@ -18,8 +19,7 @@ class TambahBm extends StatefulWidget {
 
 class _TambahBmState extends State<TambahBm> {
   FocusNode KtFocusNode = new FocusNode();
-  FocusNode JmFocusNode = new FocusNode();
-  String? IdAdm, Barang, Jumlah, Ket;
+  String? IdAdm, Tjuan, Ket;
   getPref() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     setState(() {
@@ -28,17 +28,17 @@ class _TambahBmState extends State<TambahBm> {
   }
 
   final _key = new GlobalKey<FormState>();
-  BarangModel? _currentBR;
-  final String? inkBR = BaseUrl.urlDataBarang;
-  Future<List<BarangModel>> _fetchBR() async {
-    var response = await http.get(Uri.parse(inkBR.toString()));
+  TujuanModel? _currentT;
+  final String? linkT = BaseUrl.urlDataTBM.toString();
+  Future<List<TujuanModel>> _fetchBR() async {
+    var response = await http.get(Uri.parse(linkT.toString()));
     print('hasil: ' + response.statusCode.toString());
     if (response.statusCode == 200) {
       final items = json.decode(response.body).cast<Map<String, dynamic>>();
-      List<BarangModel> listOfBR = items.map<BarangModel>((json) {
-        return BarangModel.fromJson(json);
+      List<TujuanModel> listOfT = items.map<TujuanModel>((json) {
+        return TujuanModel.fromJson(json);
       }).toList();
-      return listOfBR;
+      return listOfT;
     } else {
       throw Exception('gagal');
     }
@@ -63,7 +63,8 @@ class _TambahBmState extends State<TambahBm> {
       desc: pesan,
       btnOkOnPress: () {
         Navigator.pop(context);
-        widget.reload();
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => new DataTransaksi()));
       },
       btnOkIcon: Icons.check_circle,
       onDismissCallback: (type) {
@@ -76,7 +77,7 @@ class _TambahBmState extends State<TambahBm> {
     try {
       final response = await http.post(
           Uri.parse(BaseUrl.urlTambahBM.toString()),
-          body: {"barang": Barang, "jumlah": Jumlah, "ket": Ket, "id": IdAdm});
+          body: {"tujuan": Tjuan, "ket": Ket, "id": IdAdm});
       final data = jsonDecode(response.body);
       print(data);
       int code = data['success'];
@@ -105,6 +106,7 @@ class _TambahBmState extends State<TambahBm> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(244, 244, 244, 1),
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Color.fromARGB(255, 41, 69, 91),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -123,10 +125,10 @@ class _TambahBmState extends State<TambahBm> {
           child: ListView(
             padding: EdgeInsets.all(16.0),
             children: <Widget>[
-              FutureBuilder<List<BarangModel>>(
+              FutureBuilder<List<TujuanModel>>(
                 future: _fetchBR(),
                 builder: (BuildContext context,
-                    AsyncSnapshot<List<BarangModel>> snapshot) {
+                    AsyncSnapshot<List<TujuanModel>> snapshot) {
                   if (!snapshot.hasData) return CircularProgressIndicator();
                   return Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -140,55 +142,23 @@ class _TambahBmState extends State<TambahBm> {
                       child: DropdownButtonHideUnderline(
                           child: DropdownButton(
                         items: snapshot.data!
-                            .map((listBR) => DropdownMenuItem(
-                                  child: Text(listBR.nama_barang.toString() +
-                                      " ( " +
-                                      listBR.nama_brand.toString() +
-                                      " )"),
-                                  value: listBR,
+                            .map((listT) => DropdownMenuItem(
+                                  child: Text(listT.tujuan.toString()),
+                                  value: listT,
                                 ))
                             .toList(),
-                        onChanged: (BarangModel? value) {
+                        onChanged: (TujuanModel? value) {
                           setState(() {
-                            _currentBR = value;
-                            Barang = _currentBR!.id_barang;
+                            _currentT = value;
+                            Tjuan = _currentT!.id_tujuan;
                           });
                         },
                         isExpanded: true,
-                        hint: Text(Barang == null
-                            ? "Pilih Barang"
-                            : _currentBR!.nama_barang.toString() +
-                                " ( " +
-                                _currentBR!.nama_brand.toString() +
-                                " )"),
+                        hint: Text(Tjuan == null
+                            ? "Pilih Tujuan transaksi"
+                            : _currentT!.tujuan.toString()),
                       )));
                 },
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              TextFormField(
-                validator: (e) {
-                  if ((e as dynamic).isEmpty) {
-                    return "Silahkan isi Jumlah";
-                  }
-                },
-                onSaved: (e) => Jumlah = e,
-                focusNode: JmFocusNode,
-                decoration: InputDecoration(
-                  labelText: 'Jumlah Barang',
-                  labelStyle: TextStyle(
-                      color: JmFocusNode.hasFocus
-                          ? Colors.blue
-                          : Color.fromARGB(255, 32, 54, 70)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(255, 32, 54, 70)),
-                  ),
-                ),
               ),
               SizedBox(
                 height: 20.0,

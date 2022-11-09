@@ -85,6 +85,7 @@ class _DataAdminState extends State<DataAdmin> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,

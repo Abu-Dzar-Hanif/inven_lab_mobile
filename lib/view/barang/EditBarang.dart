@@ -8,6 +8,9 @@ import 'package:inven_lab/model/BarangModel.dart';
 import 'package:inven_lab/model/BrandModel.dart';
 import 'package:inven_lab/model/JenisModel.dart';
 import 'package:inven_lab/model/api.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 class EditBarang extends StatefulWidget {
   final VoidCallback reload;
@@ -21,10 +24,38 @@ class _EditBarangState extends State<EditBarang> {
   FocusNode myFocusNode = new FocusNode();
   String? id_barang, nama, brand, jenis;
   final _key = new GlobalKey<FormState>();
+  File? _imageFile;
+  final image_picker = ImagePicker();
   TextEditingController? txtBarang;
   setup() async {
     txtBarang = TextEditingController(text: widget.model.nama_barang);
     id_barang = widget.model.id_barang;
+  }
+
+  _pilihGallery() async {
+    final image = await image_picker.getImage(
+        source: ImageSource.gallery, maxHeight: 1920.0, maxWidth: 1080);
+    setState(() {
+      if (image != null) {
+        _imageFile = File(image.path);
+        Navigator.pop(context);
+      } else {
+        print('No image selected');
+      }
+    });
+  }
+
+  _pilihCamera() async {
+    final image = await image_picker.getImage(
+        source: ImageSource.camera, maxHeight: 1920.0, maxWidth: 1080);
+    setState(() {
+      if (image != null) {
+        _imageFile = File(image.path);
+        Navigator.pop(context);
+      } else {
+        print('No image selected');
+      }
+    });
   }
 
   JenisModel? _currentJenis;
@@ -69,12 +100,45 @@ class _EditBarangState extends State<EditBarang> {
 
   prosesUp() async {
     try {
-      final respon = await http
-          .post(Uri.parse(BaseUrl.urlEditBarang.toString()), body: {
+      var stream =
+          http.ByteStream(DelegatingStream.typed(_imageFile!.openRead()));
+      var length = await _imageFile!.length();
+      var uri = Uri.parse(BaseUrl.urlEditBarang);
+      var request = http.MultipartRequest("POST", uri);
+      request.fields['id_barang'] = id_barang.toString();
+      request.fields['nama'] = nama.toString();
+      request.fields['jenis'] = jenis == null ? widget.model.id_jenis! : jenis!;
+      request.fields['brand'] = brand == null ? widget.model.id_brand! : brand!;
+      request.files.add(http.MultipartFile("foto", stream, length,
+          filename: path.basename(_imageFile!.path)));
+      var respon = await request.send();
+      if (respon.statusCode > 2) {
+        print("berhasil upload");
+        if (this.mounted) {
+          setState(() {
+            widget.reload();
+            Navigator.pop(context);
+          });
+        }
+      } else {
+        print("gagal");
+      }
+    } catch (e) {
+      if (noImgUp()) {
+      } else {
+        debugPrint(e.toString());
+      }
+    }
+  }
+
+  noImgUp() async {
+    try {
+      final respon =
+          await http.post(Uri.parse(BaseUrl.urlEditBarang.toString()), body: {
         "id_barang": id_barang,
         "nama": nama,
-        "brand": brand,
-        "jenis": jenis
+        "brand": brand == null ? widget.model.id_brand! : brand!,
+        "jenis": jenis == null ? widget.model.id_jenis! : jenis!
       });
       final data = jsonDecode(respon.body);
       print(data);
@@ -94,6 +158,52 @@ class _EditBarangState extends State<EditBarang> {
     }
   }
 
+  dialogFileFoto() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: ListView(
+              padding: EdgeInsets.all(16.0),
+              shrinkWrap: true,
+              children: <Widget>[
+                Text(
+                  "Silahkan Pilih Sumber File",
+                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 18.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    InkWell(
+                        onTap: () {
+                          _pilihCamera();
+                        },
+                        child: Text(
+                          "Kamera",
+                          style: TextStyle(
+                              fontSize: 18.0, fontWeight: FontWeight.bold),
+                        )),
+                    SizedBox(
+                      width: 25.0,
+                    ),
+                    InkWell(
+                        onTap: () {
+                          _pilihGallery();
+                        },
+                        child: Text(
+                          "Gallery",
+                          style: TextStyle(
+                              fontSize: 18.0, fontWeight: FontWeight.bold),
+                        )),
+                  ],
+                )
+              ],
+            ),
+          );
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -105,6 +215,7 @@ class _EditBarangState extends State<EditBarang> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(244, 244, 244, 1),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -123,6 +234,19 @@ class _EditBarangState extends State<EditBarang> {
         child: ListView(
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
+            Text("Foto Produk"),
+            Container(
+                width: double.infinity,
+                height: 150.0,
+                child: InkWell(
+                    onTap: () {
+                      dialogFileFoto();
+                    },
+                    child: _imageFile == null
+                        ? Image.network(
+                            BaseUrl.path + widget.model.foto.toString())
+                        : Image.file(_imageFile!, fit: BoxFit.contain))),
+            SizedBox(height: 20),
             TextFormField(
               controller: txtBarang,
               validator: (e) {

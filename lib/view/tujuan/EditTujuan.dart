@@ -1,44 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:inven_lab/model/TujuanModel.dart';
 import 'package:inven_lab/model/api.dart';
-import 'package:inven_lab/model/JenisModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:async/async.dart';
 import 'dart:convert';
 
-class EditJenis extends StatefulWidget {
+import 'package:inven_lab/view/tujuan/DataTujuan.dart';
+
+const List<String> list = <String>['Masuk', 'Keluar'];
+
+class EditTujuan extends StatefulWidget {
   final VoidCallback reload;
-  final JenisModel model;
-  EditJenis(this.model, this.reload);
+  final TujuanModel model;
+  EditTujuan(this.model, this.reload);
   @override
-  State<EditJenis> createState() => _EditJenisState();
+  State<EditTujuan> createState() => _EditTujuanState();
 }
 
-class _EditJenisState extends State<EditJenis> {
+class _EditTujuanState extends State<EditTujuan> {
   FocusNode myFocusNode = new FocusNode();
-  String? id_jenis, jenis;
+  String? id_tujuan, Tujuan, Tipe, T7an;
   final _key = new GlobalKey<FormState>();
-  TextEditingController? txtidJenis, txtJenis;
+  TextEditingController? txtTujuan;
   setup() async {
-    txtJenis = TextEditingController(text: widget.model.nama_jenis);
-    id_jenis = widget.model.id_jenis;
+    T7an = widget.model.tipe;
+    if (T7an == "M") {
+      T7an = "Masuk";
+    } else if (T7an == "K") {
+      T7an = "Keluar";
+    }
+    txtTujuan = TextEditingController(text: widget.model.tujuan);
+    id_tujuan = widget.model.id_tujuan;
   }
 
   check() {
     final form = _key.currentState;
     if ((form as dynamic).validate()) {
       (form as dynamic).save();
-      proseJenis();
+      UpdateTujuan();
     }
   }
 
-  proseJenis() async {
+  UpdateTujuan() async {
     try {
-      final respon = await http.post(Uri.parse(BaseUrl.urlEditJenis.toString()),
-          body: {"id_jenis": id_jenis, "jenis": jenis});
+      final respon = await http.post(
+          Uri.parse(BaseUrl.urlEditTujuan.toString()),
+          body: {"id_tujuan": id_tujuan, "tujuan": Tujuan, "tipe": Tipe});
       final data = jsonDecode(respon.body);
       print(data);
       int code = data['success'];
@@ -46,8 +55,10 @@ class _EditJenisState extends State<EditJenis> {
       print(data);
       if (code == 1) {
         setState(() {
-          widget.reload();
           Navigator.pop(context);
+          // widget.reload;
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => new DataTujuan()));
         });
       } else {
         print(pesan);
@@ -75,7 +86,7 @@ class _EditJenisState extends State<EditJenis> {
           children: <Widget>[
             Container(
               child: Text(
-                "Edit Jenis Barang",
+                "Edit Tujuan Transaksi",
                 style: TextStyle(color: Colors.white, fontSize: 20.0),
               ),
             )
@@ -88,17 +99,17 @@ class _EditJenisState extends State<EditJenis> {
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
             TextFormField(
-              controller: txtJenis,
+              controller: txtTujuan,
               validator: (e) {
                 if (e!.isEmpty) {
-                  return "Silahkan isi Jenis";
+                  return "Silahkan isi Tujuan";
                 } else {
                   return null;
                 }
               },
-              onSaved: (e) => jenis = e,
+              onSaved: (e) => Tujuan = e,
               decoration: InputDecoration(
-                labelText: 'Jenis Barang',
+                labelText: 'Tujuan Transaksi',
                 labelStyle: TextStyle(
                     color: myFocusNode.hasFocus
                         ? Colors.blue
@@ -112,6 +123,37 @@ class _EditJenisState extends State<EditJenis> {
                 ),
               ),
             ),
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                      style: BorderStyle.solid,
+                      color: Color.fromARGB(255, 32, 54, 70),
+                      width: 0.80),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton(
+                      value: Tipe,
+                      items: list.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? value) {
+                        // This is called when the user selects an item.
+                        setState(() {
+                          Tipe = value!;
+                        });
+                      },
+                      isExpanded: true,
+                      hint: Text(
+                          Tipe == null ? T7an.toString() : Tipe.toString())),
+                )),
             SizedBox(
               height: 25,
             ),

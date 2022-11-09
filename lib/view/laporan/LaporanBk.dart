@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:inven_lab/model/BarangKeluarModel.dart';
 import 'dart:convert';
 import 'package:inven_lab/model/TanggalModel.dart';
-import 'package:inven_lab/model/BarangMasukModel.dart';
+import 'package:inven_lab/model/LaporanBkModel.dart';
 import 'package:inven_lab/model/api.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -53,14 +53,13 @@ class _LaporanBkState extends State<LaporanBk> {
     } else {
       final data = jsonDecode(response.body);
       data.forEach((api) {
-        final ab = new BarangKeluarModel(
-            api['no'],
-            api['id_bm'],
+        final ab = new LaporanBkModel(
             api['id_barang_keluar'],
+            api['id_barang'],
             api['nama_barang'],
             api['nama_brand'],
             api['jumlah_keluar'],
-            api['tgl_keluar'],
+            api['tgl_transaksi'],
             api['keterangan'],
             api['nama']);
         list.add(ab);
@@ -90,6 +89,7 @@ class _LaporanBkState extends State<LaporanBk> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -151,6 +151,26 @@ class _LaporanBkState extends State<LaporanBk> {
                                   TableCellVerticalAlignment.middle,
                               children: <TableRow>[
                                 TableRow(children: <Widget>[
+                                  ListTile(title: Text("Kode Barang Keluar")),
+                                  ListTile(
+                                      title: Text(
+                                    x.id_barang_keluar.toString(),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal),
+                                  )),
+                                ]),
+                                TableRow(children: <Widget>[
+                                  ListTile(title: Text("Kode Barang")),
+                                  ListTile(
+                                      title: Text(
+                                    x.id_barang.toString(),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal),
+                                  )),
+                                ]),
+                                TableRow(children: <Widget>[
                                   ListTile(title: Text("Nama Barang")),
                                   ListTile(
                                       title: Text(
@@ -159,7 +179,7 @@ class _LaporanBkState extends State<LaporanBk> {
                                         x.nama_brand.toString() +
                                         " )",
                                     style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                   )),
                                 ]),
@@ -169,7 +189,7 @@ class _LaporanBkState extends State<LaporanBk> {
                                       title: Text(
                                     x.jumlah_keluar.toString(),
                                     style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                   )),
                                 ]),
@@ -177,9 +197,9 @@ class _LaporanBkState extends State<LaporanBk> {
                                   ListTile(title: Text("Tgl Keluar")),
                                   ListTile(
                                       title: Text(
-                                    x.tgl_keluar.toString(),
+                                    x.tgl_transaksi.toString(),
                                     style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                   )),
                                 ]),
@@ -189,7 +209,17 @@ class _LaporanBkState extends State<LaporanBk> {
                                       title: Text(
                                     x.keterangan.toString(),
                                     style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal),
+                                  )),
+                                ]),
+                                TableRow(children: <Widget>[
+                                  ListTile(title: Text("User Input")),
+                                  ListTile(
+                                      title: Text(
+                                    x.nama.toString(),
+                                    style: TextStyle(
+                                        fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                   )),
                                 ]),

@@ -9,13 +9,14 @@ import 'package:inven_lab/model/api.dart';
 import 'package:inven_lab/view/admin/DataAdmin.dart';
 import 'package:inven_lab/view/admin/Profil.dart';
 import 'package:inven_lab/view/barang/DataBarang.dart';
-import 'package:inven_lab/view/barang_keluar/DataBarangKeluar.dart';
-import 'package:inven_lab/view/barang_masuk/DataBarangMasuk.dart';
+import 'package:inven_lab/view/barang_keluar/DataTransaksiBk.dart';
+import 'package:inven_lab/view/barang_masuk/DataTransaksi.dart';
 import 'package:inven_lab/view/brand/DataBrand.dart';
 import 'package:inven_lab/view/jenis/DataJenis.dart';
 import 'package:inven_lab/view/laporan/FormLaporan.dart';
 import 'package:inven_lab/view/laporan/FormLbk.dart';
 import 'package:inven_lab/view/stok/DataStok.dart';
+import 'package:inven_lab/view/tujuan/DataTujuan.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -84,7 +85,7 @@ class _MenuPageState extends State<MenuPage> {
   infoOut() {
     AwesomeDialog(
       context: context,
-      dialogType: DialogType.infoReverse,
+      dialogType: DialogType.warning,
       headerAnimationLoop: true,
       animType: AnimType.bottomSlide,
       title: 'Ready to Leave?',
@@ -128,11 +129,17 @@ class _MenuPageState extends State<MenuPage> {
                       title: Text("Total Barang Masuk",
                           style: TextStyle(
                               color: Color.fromARGB(255, 23, 33, 41))),
-                      subtitle: Text(Sbm,
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 23, 33, 41),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                      subtitle: Sbm == "null"
+                          ? Text("0",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold))
+                          : Text(Sbm,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
                       trailing: FaIcon(FontAwesomeIcons.box, size: 40),
                     ),
                   ]),
@@ -162,11 +169,17 @@ class _MenuPageState extends State<MenuPage> {
                       title: Text("Total Barang Keluar",
                           style: TextStyle(
                               color: Color.fromARGB(255, 23, 33, 41))),
-                      subtitle: Text(Sbk,
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 23, 33, 41),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                      subtitle: Sbk.toString() == "null"
+                          ? Text("0",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold))
+                          : Text(Sbk,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
                       trailing: FaIcon(
                         FontAwesomeIcons.boxOpen,
                         size: 40,
@@ -199,11 +212,17 @@ class _MenuPageState extends State<MenuPage> {
                       title: Text("Total stok Barang",
                           style: TextStyle(
                               color: Color.fromARGB(255, 23, 33, 41))),
-                      subtitle: Text(Stl,
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 23, 33, 41),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                      subtitle: Stl.toString() == "null"
+                          ? Text("0",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold))
+                          : Text(Stl,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 23, 33, 41),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
                       trailing: FaIcon(FontAwesomeIcons.boxesStacked, size: 40),
                     ),
                   ]),
@@ -295,6 +314,16 @@ class _MenuPageState extends State<MenuPage> {
                               builder: (context) => new DataBarang()));
                     },
                   ),
+                  ListTile(
+                    leading: Text(""),
+                    title: Text("Data Tujuan"),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => new DataTujuan()));
+                    },
+                  ),
                   if (LvlUsr == "1") ...[
                     ListTile(
                       leading: Text(""),
@@ -346,7 +375,7 @@ class _MenuPageState extends State<MenuPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => new DataBarangMasuk()));
+                              builder: (context) => new DataTransaksi()));
                     },
                   ),
                   ListTile(
@@ -356,7 +385,7 @@ class _MenuPageState extends State<MenuPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => new DataBarangKeluar()));
+                              builder: (context) => new DataTransaksiBk()));
                     },
                   ),
                 ],

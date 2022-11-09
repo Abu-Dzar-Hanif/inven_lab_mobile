@@ -1,30 +1,29 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:inven_lab/model/api.dart';
+import 'package:inven_lab/model/TransaksiMasukModel.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:inven_lab/Loadingpage.dart';
 import 'dart:convert';
-import 'package:inven_lab/model/JenisModel.dart';
-import 'package:inven_lab/model/api.dart';
-import 'package:inven_lab/view/jenis/EditJenis.dart';
-import 'package:inven_lab/view/jenis/TambahJenis.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:inven_lab/view/barang_masuk/DetailTransaksi.dart';
+import 'package:inven_lab/view/barang_masuk/KeranjangBm.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DataJenis extends StatefulWidget {
+class DataTransaksi extends StatefulWidget {
   @override
-  State<DataJenis> createState() => _DataJenisState();
+  State<DataTransaksi> createState() => _DataTransaksiState();
 }
 
-class _DataJenisState extends State<DataJenis> {
+class _DataTransaksiState extends State<DataTransaksi> {
   var loading = false;
-  final list = [];
   String? LvlUsr;
+  final list = [];
   final GlobalKey<RefreshIndicatorState> _refresh =
       GlobalKey<RefreshIndicatorState>();
-
   getPref() async {
     _lihatData();
     SharedPreferences pref = await SharedPreferences.getInstance();
@@ -38,13 +37,13 @@ class _DataJenisState extends State<DataJenis> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(Uri.parse(BaseUrl.urlDataJenis));
+    final response = await http.get(Uri.parse(BaseUrl.urlTransaksiBM));
     if (response.contentLength == 2) {
     } else {
       final data = jsonDecode(response.body);
       data.forEach((api) {
-        final ab =
-            new JenisModel(api['no'], api['id_jenis'], api['nama_jenis']);
+        final ab = new TransaksiMasukModel(api['id_transaksi'], api['tujuan'],
+            api['total_item'], api['tgl_transaksi'], api['keterangan']);
         list.add(ab);
       });
       setState(() {
@@ -54,8 +53,8 @@ class _DataJenisState extends State<DataJenis> {
   }
 
   _proseshapus(String id) async {
-    final response = await http
-        .post(Uri.parse(BaseUrl.urlHapusJenis), body: {"id_jenis": id});
+    final response =
+        await http.post(Uri.parse(BaseUrl.urlHapusBM), body: {"id": id});
     final data = jsonDecode(response.body);
     int value = data['success'];
     String pesan = data['message'];
@@ -67,6 +66,25 @@ class _DataJenisState extends State<DataJenis> {
       print(pesan);
       dialogHapus(pesan);
     }
+  }
+
+  alertHapus(String id) {
+    AwesomeDialog(
+      dismissOnTouchOutside: false,
+      context: context,
+      dialogType: DialogType.warning,
+      headerAnimationLoop: false,
+      animType: AnimType.topSlide,
+      showCloseIcon: true,
+      closeIcon: const Icon(Icons.close_fullscreen_outlined),
+      title: 'WARNING!!',
+      desc:
+          'Menghapus data ini akan mengembalikan stok seperti sebelum barang ini di input, Yakin Hapus??',
+      btnCancelOnPress: () {},
+      btnOkOnPress: () {
+        _proseshapus(id);
+      },
+    ).show();
   }
 
   dialogHapus(String pesan) {
@@ -101,7 +119,7 @@ class _DataJenisState extends State<DataJenis> {
           children: <Widget>[
             Container(
               child: Text(
-                "Data Jenis Barang",
+                "Data Transaksi Barang Masuk",
                 style: TextStyle(color: Colors.white, fontSize: 20.0),
               ),
             )
@@ -111,12 +129,11 @@ class _DataJenisState extends State<DataJenis> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // print("tambah jenis");
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => new TambahJenis(_lihatData)));
+          Navigator.pop(context);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => new KeranjangBm()));
         },
-        child: Icon(Icons.add),
+        child: FaIcon(FontAwesomeIcons.cartPlus),
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
       ),
       body: RefreshIndicator(
@@ -137,26 +154,45 @@ class _DataJenisState extends State<DataJenis> {
                           children: <Widget>[
                             ListTile(
                               title: Text(
-                                x.nama_jenis.toString(),
+                                x.id_transaksi.toString(),
+                              ),
+                              subtitle: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Total " + x.total_item.toString(),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Text(
+                                    "(" + x.tgl_transaksi.toString() + ")",
+                                  )
+                                ],
                               ),
                               trailing: Wrap(
                                 children: [
                                   IconButton(
                                       onPressed: () {
-                                        // edit
                                         Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EditJenis(x, _lihatData)));
+                                                    DetailTransaksi(
+                                                        x, _lihatData)));
                                       },
-                                      icon: Icon(Icons.edit)),
+                                      icon: FaIcon(
+                                        FontAwesomeIcons.eye,
+                                        size: 20,
+                                      )),
                                   if (LvlUsr == "1") ...[
                                     IconButton(
                                         onPressed: () {
-                                          // delete
-                                          _proseshapus(x.id_jenis);
+                                          alertHapus(x.id_transaksi);
                                         },
-                                        icon: Icon(Icons.delete))
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.trash,
+                                          size: 20,
+                                        ))
                                   ],
                                 ],
                               ),

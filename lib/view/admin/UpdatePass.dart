@@ -80,6 +80,7 @@ class _UpdatePassState extends State<UpdatePass> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(244, 244, 244, 1),
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Color.fromARGB(255, 41, 69, 91),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,

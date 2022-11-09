@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,9 @@ import 'package:inven_lab/model/BarangModel.dart';
 import 'package:inven_lab/model/BrandModel.dart';
 import 'package:inven_lab/model/JenisModel.dart';
 import 'package:inven_lab/model/api.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 class TambahBarang extends StatefulWidget {
   final VoidCallback reload;
@@ -20,6 +25,34 @@ class _TambahBarangState extends State<TambahBarang> {
   FocusNode myFocusNode = new FocusNode();
   String? barang, jenisB, brandB;
   final _key = new GlobalKey<FormState>();
+  File? _imageFile;
+  final image_picker = ImagePicker();
+  _pilihGallery() async {
+    final image = await image_picker.getImage(
+        source: ImageSource.gallery, maxHeight: 1920.0, maxWidth: 1080);
+    setState(() {
+      if (image != null) {
+        _imageFile = File(image.path);
+        Navigator.pop(context);
+      } else {
+        print('No image selected');
+      }
+    });
+  }
+
+  _pilihCamera() async {
+    final image = await image_picker.getImage(
+        source: ImageSource.camera, maxHeight: 1920.0, maxWidth: 1080);
+    setState(() {
+      if (image != null) {
+        _imageFile = File(image.path);
+        Navigator.pop(context);
+      } else {
+        print('No image selected');
+      }
+    });
+  }
+
   JenisModel? _currentJenis;
   final String? linkJenis = BaseUrl.urlDataJenis;
   Future<List<JenisModel>> _fetchJenis() async {
@@ -62,21 +95,27 @@ class _TambahBarangState extends State<TambahBarang> {
 
   Simpan() async {
     try {
-      final response = await http.post(
-          Uri.parse(BaseUrl.urlTambahBarang.toString()),
-          body: {"nama": barang, "brand": brandB, "jenis": jenisB});
-      final data = jsonDecode(response.body);
-      print(data);
-      int code = data['success'];
-      String pesan = data['message'];
-      print(data);
-      if (code == 1) {
-        setState(() {
-          Navigator.pop(context);
-          widget.reload();
-        });
+      var stream =
+          http.ByteStream(DelegatingStream.typed(_imageFile!.openRead()));
+      var length = await _imageFile!.length();
+      var uri = Uri.parse(BaseUrl.urlTambahBarang);
+      var request = http.MultipartRequest("POST", uri);
+      request.fields['nama'] = barang!;
+      request.fields['brand'] = brandB!;
+      request.fields['jenis'] = jenisB!;
+      request.files.add(http.MultipartFile("foto", stream, length,
+          filename: path.basename(_imageFile!.path)));
+      var respon = await request.send();
+      if (respon.statusCode > 2) {
+        print("berhasil upload");
+        if (this.mounted) {
+          setState(() {
+            widget.reload();
+            Navigator.pop(context);
+          });
+        }
       } else {
-        print(pesan);
+        print("gagal");
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -88,11 +127,79 @@ class _TambahBarangState extends State<TambahBarang> {
     super.initState();
   }
 
+  dialogFileFoto() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: ListView(
+              padding: EdgeInsets.all(16.0),
+              shrinkWrap: true,
+              children: <Widget>[
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Upload Foto",
+                        style: TextStyle(
+                            fontSize: 20.0, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 25,
+                      ),
+                      Text(
+                        "Silahkan Pilih Sumber File",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 50.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    InkWell(
+                        onTap: () {
+                          _pilihCamera();
+                        },
+                        child: FaIcon(
+                          FontAwesomeIcons.camera,
+                          size: 50,
+                        )),
+                    SizedBox(
+                      width: 100.0,
+                    ),
+                    InkWell(
+                        onTap: () {
+                          _pilihGallery();
+                        },
+                        child: FaIcon(
+                          FontAwesomeIcons.images,
+                          size: 50,
+                        )),
+                  ],
+                )
+              ],
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var placeholder = Container(
+        width: double.infinity,
+        height: 150.0,
+        child: Icon(
+          CupertinoIcons.camera_viewfinder,
+          size: 100,
+        ));
     return Scaffold(
         backgroundColor: Color.fromRGBO(244, 244, 244, 1),
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Color.fromARGB(255, 41, 69, 91),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -111,6 +218,20 @@ class _TambahBarangState extends State<TambahBarang> {
           child: ListView(
             padding: EdgeInsets.all(16.0),
             children: <Widget>[
+              Text("Foto Barang"),
+              Container(
+                  width: double.infinity,
+                  height: 150.0,
+                  child: InkWell(
+                      onTap: () {
+                        dialogFileFoto();
+                      },
+                      child: _imageFile == null
+                          ? placeholder
+                          : Image.file(_imageFile!, fit: BoxFit.contain))),
+              SizedBox(
+                height: 20,
+              ),
               TextFormField(
                 validator: (e) {
                   if ((e as dynamic).isEmpty) {

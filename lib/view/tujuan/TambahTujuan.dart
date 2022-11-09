@@ -1,24 +1,25 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:inven_lab/model/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:async/async.dart';
-import 'package:inven_lab/model/BrandModel.dart';
-import 'package:inven_lab/model/api.dart';
+import 'dart:convert';
 
-class TambahBrand extends StatefulWidget {
+const List<String> list = <String>['Masuk', 'Keluar'];
+
+class TambahTujuan extends StatefulWidget {
   final VoidCallback reload;
-  TambahBrand(this.reload);
+  TambahTujuan(this.reload);
   @override
-  State<TambahBrand> createState() => _TambahBrandState();
+  State<TambahTujuan> createState() => _TambahTujuanState();
 }
 
-class _TambahBrandState extends State<TambahBrand> {
+class _TambahTujuanState extends State<TambahTujuan> {
   FocusNode myFocusNode = new FocusNode();
-  String? brand;
+  String? Tujuan, Tipe;
   final _key = new GlobalKey<FormState>();
+
   check() {
     final form = _key.currentState;
     if ((form as dynamic).validate()) {
@@ -30,8 +31,8 @@ class _TambahBrandState extends State<TambahBrand> {
   Simpan() async {
     try {
       final response = await http.post(
-          Uri.parse(BaseUrl.urlTambahBrand.toString()),
-          body: {"brand": brand});
+          Uri.parse(BaseUrl.urlTambahTujuan.toString()),
+          body: {"tujuan": Tujuan, "tipe": Tipe});
       final data = jsonDecode(response.body);
       print(data);
       int code = data['success'];
@@ -51,11 +52,6 @@ class _TambahBrandState extends State<TambahBrand> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color.fromRGBO(244, 244, 244, 1),
@@ -67,7 +63,7 @@ class _TambahBrandState extends State<TambahBrand> {
             children: <Widget>[
               Container(
                 child: Text(
-                  "Tambah Brand Barang",
+                  "Tambah Jenis Barang",
                   style: TextStyle(color: Colors.white, fontSize: 20.0),
                 ),
               )
@@ -82,12 +78,12 @@ class _TambahBrandState extends State<TambahBrand> {
               TextFormField(
                 validator: (e) {
                   if ((e as dynamic).isEmpty) {
-                    return "Silahkan isi brand";
+                    return "Silahkan isi Jenis";
                   }
                 },
-                onSaved: (e) => brand = e,
+                onSaved: (e) => Tujuan = e,
                 decoration: InputDecoration(
-                  labelText: 'Brand Barang',
+                  labelText: 'Tujuan Transaksi',
                   labelStyle: TextStyle(
                       color: myFocusNode.hasFocus
                           ? Colors.blue
@@ -101,6 +97,39 @@ class _TambahBrandState extends State<TambahBrand> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(
+                        style: BorderStyle.solid,
+                        color: Color.fromARGB(255, 32, 54, 70),
+                        width: 0.80),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton(
+                        value: Tipe,
+                        items:
+                            list.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? value) {
+                          // This is called when the user selects an item.
+                          setState(() {
+                            Tipe = value!;
+                          });
+                        },
+                        isExpanded: true,
+                        hint: Text(Tipe == null
+                            ? "Pilih Tipe Transaksi"
+                            : Tipe.toString())),
+                  )),
               SizedBox(
                 height: 25,
               ),

@@ -2,30 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
-import 'package:inven_lab/model/BarangMasukModel.dart';
+import 'package:inven_lab/model/BarangModel.dart';
 import 'package:inven_lab/model/api.dart';
+import 'package:easy_image_viewer/easy_image_viewer.dart';
 
-class DetailBm extends StatefulWidget {
+class DetailBarang extends StatefulWidget {
   final VoidCallback reload;
-  final BarangMasukModel model;
-  DetailBm(this.model, this.reload);
+  final BarangModel model;
+  DetailBarang(this.model, this.reload);
   @override
-  State<DetailBm> createState() => _DetailBmState();
+  State<DetailBarang> createState() => _DetailBarangState();
 }
 
-class _DetailBmState extends State<DetailBm> {
+class _DetailBarangState extends State<DetailBarang> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromRGBO(244, 244, 244, 1),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Container(
               child: Text(
-                "Detal Barang Masuk " + widget.model.id_barang_masuk.toString(),
+                "Detail Barang " + widget.model.id_barang.toString(),
                 style: TextStyle(color: Colors.white, fontSize: 20.0),
               ),
             )
@@ -39,53 +41,56 @@ class _DetailBmState extends State<DetailBm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                Container(
+                    width: double.infinity,
+                    height: 250.0,
+                    child: InkWell(
+                        onTap: () {
+                          showImageViewer(
+                              context,
+                              Image.network(BaseUrl.path +
+                                      widget.model.foto.toString())
+                                  .image,
+                              swipeDismissible: true);
+                        },
+                        child: Image.network(
+                            BaseUrl.path + widget.model.foto.toString(),
+                            fit: BoxFit.contain))),
                 Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: <TableRow>[
                     TableRow(children: <Widget>[
+                      ListTile(title: Text("Id Barang")),
+                      ListTile(
+                          title: Text(
+                        widget.model.id_barang.toString(),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.normal),
+                      )),
+                    ]),
+                    TableRow(children: <Widget>[
                       ListTile(title: Text("Nama Barang")),
                       ListTile(
                           title: Text(
-                        widget.model.nama_barang.toString() +
-                            "( " +
-                            widget.model.nama_brand.toString() +
-                            " )",
+                        widget.model.nama_barang.toString(),
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.normal),
                       )),
                     ]),
                     TableRow(children: <Widget>[
-                      ListTile(title: Text("Jumlah Masuk")),
+                      ListTile(title: Text("Jenis")),
                       ListTile(
                           title: Text(
-                        widget.model.jumlah_masuk.toString(),
+                        widget.model.nama_jenis.toString(),
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.normal),
                       )),
                     ]),
                     TableRow(children: <Widget>[
-                      ListTile(title: Text("Tgl Masuk")),
+                      ListTile(title: Text("Brand")),
                       ListTile(
                           title: Text(
-                        widget.model.tgl_masuk.toString(),
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.normal),
-                      )),
-                    ]),
-                    TableRow(children: <Widget>[
-                      ListTile(title: Text("Keterangan")),
-                      ListTile(
-                          title: Text(
-                        widget.model.keterangan.toString(),
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.normal),
-                      )),
-                    ]),
-                    TableRow(children: <Widget>[
-                      ListTile(title: Text("User Input")),
-                      ListTile(
-                          title: Text(
-                        widget.model.nama.toString(),
+                        widget.model.nama_brand.toString(),
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.normal),
                       )),

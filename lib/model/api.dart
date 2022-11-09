@@ -1,5 +1,6 @@
 class BaseUrl {
   static String url = "http://192.168.43.38/inven_lab/api/";
+  static String path = "http://192.168.43.38/inven_lab/admin/img/";
   static String urlDataJenis = url + "jenis/data_jenis.php";
   static String urlTambahJenis = url + "jenis/input_jenis.php";
   static String urlHapusJenis = url + "jenis/delete_jenis.php";
@@ -19,9 +20,20 @@ class BaseUrl {
   static String urlEditBarang = url + "barang/update_barang.php";
   static String urlLogin = url + "auth/login.php";
   static String urlCount = url + "statistik/count.php";
-  static String urlDataBM = url + "barang_masuk/data_barang_masuk.php";
+
+  static String urlTransaksiBM = url + "barang_masuk/transaksi_bm.php";
+  static String urlDetailTBM = url + "barang_masuk/data_barang_masuk.php?id=";
+  static String urlCartBM = url + "barang_masuk/cart_bm.php?id=";
+  static String urlInputCBM = url + "barang_masuk/input_cartbm.php";
+  static String urlDeleteCBM = url + "barang_masuk/delete_cartbm.php";
   static String urlTambahBM = url + "barang_masuk/input_bm.php";
   static String urlHapusBM = url + "barang_masuk/delete_bm.php";
+
+  static String urlTransaksiBK = url + "barang_keluar/transaksi_bk.php";
+  static String urlDetailTBK = url + "barang_keluar/data_barang_keluar.php?id=";
+  static String urlCartBK = url + "barang_keluar/cart_bk.php?id=";
+  static String urlInputCBK = url + "barang_keluar/input_cartbk.php";
+  static String urlDeleteCBK = url + "barang_keluar/delete_cartbk.php";
   static String urlDataBK = url + "barang_keluar/data_barang_keluar.php";
   static String urlDataBr = url + "barang_keluar/data_br.php";
   static String urlTambahBk = url + "barang_keluar/input_bk.php";
@@ -35,6 +47,14 @@ class BaseUrl {
   static String urlBmPdf = url + "laporan/report_bm.php?t1=";
   static String urlBkCsv = url + "laporan/bk_csv.php?t1=";
   static String urlBkPdf = url + "laporan/report_bk.php?t1=";
+  static String urlBaBm = url + "laporan/ba_bm.php?i=";
+  static String urlBaBk = url + "laporan/ba_bk.php?i=";
   static String urlProfil = url + "profil/profile.php?id=";
   static String urlUpPass = url + "profil/update_password.php";
+  static String urlDataT = url + "tujuan/data_tujuan.php";
+  static String urlDataTBM = url + "tujuan/tujuan_bm.php";
+  static String urlDataTBK = url + "tujuan/tujuan_bk.php";
+  static String urlTambahTujuan = url + "tujuan/input_tujuan.php";
+  static String urlEditTujuan = url + "tujuan/update_tujuan.php";
+  static String urlHapusTujuan = url + "tujuan/delete_tujuan.php";
 }

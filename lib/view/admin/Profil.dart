@@ -20,6 +20,7 @@ class _ProfilState extends State<Profil> {
     setState(() {
       IdUsr = pref.getString("id");
     });
+    _countBR();
   }
 
   var loading = false;
@@ -54,7 +55,6 @@ class _ProfilState extends State<Profil> {
   void initState() {
     super.initState();
     getPref();
-    _countBR();
   }
 
   @override
@@ -62,6 +62,7 @@ class _ProfilState extends State<Profil> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(244, 244, 244, 1),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,

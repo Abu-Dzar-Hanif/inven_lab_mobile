@@ -1,28 +1,29 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:inven_lab/model/api.dart';
+import 'package:inven_lab/model/TransaksiMasukModel.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:inven_lab/Loadingpage.dart';
 import 'dart:convert';
-import 'package:inven_lab/model/BarangKeluarModel.dart';
-import 'package:inven_lab/model/api.dart';
-import 'package:inven_lab/view/barang_keluar/DetailBk.dart';
-import 'package:inven_lab/view/barang_keluar/TambahBK.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:inven_lab/view/barang_keluar/DetailTbk.dart';
+import 'package:inven_lab/view/barang_keluar/KeranjangBk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DataBarangKeluar extends StatefulWidget {
+class DataTransaksiBk extends StatefulWidget {
   @override
-  State<DataBarangKeluar> createState() => _DataBarangKeluarState();
+  State<DataTransaksiBk> createState() => _DataTransaksiBkState();
 }
 
-class _DataBarangKeluarState extends State<DataBarangKeluar> {
+class _DataTransaksiBkState extends State<DataTransaksiBk> {
   var loading = false;
-  final list = [];
   String? LvlUsr;
+  final list = [];
   final GlobalKey<RefreshIndicatorState> _refresh =
       GlobalKey<RefreshIndicatorState>();
-
   getPref() async {
     _lihatData();
     SharedPreferences pref = await SharedPreferences.getInstance();
@@ -36,21 +37,13 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(Uri.parse(BaseUrl.urlDataBK));
+    final response = await http.get(Uri.parse(BaseUrl.urlTransaksiBK));
     if (response.contentLength == 2) {
     } else {
       final data = jsonDecode(response.body);
       data.forEach((api) {
-        final ab = new BarangKeluarModel(
-            api['no'],
-            api['id_bk'],
-            api['id_barang_keluar'],
-            api['nama_barang'],
-            api['nama_brand'],
-            api['jumlah_keluar'],
-            api['tgl_keluar'],
-            api['keterangan'],
-            api['nama']);
+        final ab = new TransaksiMasukModel(api['id_transaksi'], api['tujuan'],
+            api['total_item'], api['tgl_transaksi'], api['keterangan']);
         list.add(ab);
       });
       setState(() {
@@ -73,12 +66,6 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
       print(pesan);
       dialogHapus(pesan);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getPref();
   }
 
   alertHapus(String id) {
@@ -116,16 +103,23 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    getPref();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Container(
               child: Text(
-                "Data Barang Keluar",
+                "Data Transaksi Barang Keluar",
                 style: TextStyle(color: Colors.white, fontSize: 20.0),
               ),
             )
@@ -135,12 +129,11 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // print("tambah jenis");
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => new TambahBK(_lihatData)));
+          Navigator.pop(context);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => new KeranjangBK()));
         },
-        child: Icon(Icons.add),
+        child: FaIcon(FontAwesomeIcons.cartPlus),
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
       ),
       body: RefreshIndicator(
@@ -161,16 +154,22 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
                           children: <Widget>[
                             ListTile(
                               title: Text(
-                                x.nama_barang.toString() +
-                                    "( " +
-                                    x.nama_brand.toString() +
-                                    " )",
+                                x.id_transaksi.toString(),
                               ),
-                              subtitle: Padding(
-                                  padding: EdgeInsets.all(1.0),
-                                  child: Text(
-                                    "Tgl Keluar " + x.tgl_keluar.toString(),
-                                  )),
+                              subtitle: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Total " + x.total_item.toString(),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Text(
+                                    "(" + x.tgl_transaksi.toString() + ")",
+                                  )
+                                ],
+                              ),
                               trailing: Wrap(
                                 children: [
                                   IconButton(
@@ -178,7 +177,7 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
                                         Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    DetailBk(x, _lihatData)));
+                                                    DetailTbk(x, _lihatData)));
                                       },
                                       icon: FaIcon(
                                         FontAwesomeIcons.eye,
@@ -187,7 +186,7 @@ class _DataBarangKeluarState extends State<DataBarangKeluar> {
                                   if (LvlUsr == "1") ...[
                                     IconButton(
                                         onPressed: () {
-                                          alertHapus(x.id_bk);
+                                          alertHapus(x.id_transaksi);
                                         },
                                         icon: FaIcon(
                                           FontAwesomeIcons.trash,

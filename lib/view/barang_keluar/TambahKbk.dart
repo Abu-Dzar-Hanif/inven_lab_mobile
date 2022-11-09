@@ -1,25 +1,25 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:async/async.dart';
-import 'package:inven_lab/model/TujuanModel.dart';
+import 'package:inven_lab/model/BarangModel.dart';
 import 'package:inven_lab/model/api.dart';
-import 'package:inven_lab/view/barang_keluar/DataTransaksiBk.dart';
+import 'package:inven_lab/view/barang_keluar/KeranjangBk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
-class TambahBK extends StatefulWidget {
-  final VoidCallback reload;
-  TambahBK(this.reload);
+class TambahKbk extends StatefulWidget {
   @override
-  State<TambahBK> createState() => _TambahBKState();
+  State<TambahKbk> createState() => _TambahKbkState();
 }
 
-class _TambahBKState extends State<TambahBK> {
-  FocusNode KtFocusNode = new FocusNode();
-  String? IdAdm, Tjuan, Ket;
+class _TambahKbkState extends State<TambahKbk> {
+  FocusNode JmFocusNode = new FocusNode();
+  String? IdAdm, Barang, Jumlah;
   getPref() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     setState(() {
@@ -28,27 +28,19 @@ class _TambahBKState extends State<TambahBK> {
   }
 
   final _key = new GlobalKey<FormState>();
-  TujuanModel? _currentT;
-  final String? linkT = BaseUrl.urlDataTBK;
-  Future<List<TujuanModel>> _fetchBR() async {
-    var response = await http.get(Uri.parse(linkT.toString()));
+  BarangModel? _currentBR;
+  final String? inkBR = BaseUrl.urlDataBr;
+  Future<List<BarangModel>> _fetchBR() async {
+    var response = await http.get(Uri.parse(inkBR.toString()));
     print('hasil: ' + response.statusCode.toString());
     if (response.statusCode == 200) {
       final items = json.decode(response.body).cast<Map<String, dynamic>>();
-      List<TujuanModel> listOfT = items.map<TujuanModel>((json) {
-        return TujuanModel.fromJson(json);
+      List<BarangModel> listOfBR = items.map<BarangModel>((json) {
+        return BarangModel.fromJson(json);
       }).toList();
-      return listOfT;
+      return listOfBR;
     } else {
       throw Exception('gagal');
-    }
-  }
-
-  check() {
-    final form = _key.currentState;
-    if ((form as dynamic).validate()) {
-      (form as dynamic).save();
-      Simpan();
     }
   }
 
@@ -64,7 +56,7 @@ class _TambahBKState extends State<TambahBK> {
       btnOkOnPress: () {
         Navigator.pop(context);
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => new DataTransaksiBk()));
+            MaterialPageRoute(builder: (context) => new KeranjangBK()));
       },
       btnOkIcon: Icons.check_circle,
       onDismissCallback: (type) {
@@ -73,11 +65,19 @@ class _TambahBKState extends State<TambahBK> {
     ).show();
   }
 
+  check() {
+    final form = _key.currentState;
+    if ((form as dynamic).validate()) {
+      (form as dynamic).save();
+      Simpan();
+    }
+  }
+
   Simpan() async {
     try {
       final response = await http.post(
-          Uri.parse(BaseUrl.urlTambahBk.toString()),
-          body: {"tujuan": Tjuan, "ket": Ket, "id": IdAdm});
+          Uri.parse(BaseUrl.urlInputCBK.toString()),
+          body: {"barang": Barang, "jumlah": Jumlah, "id": IdAdm});
       final data = jsonDecode(response.body);
       print(data);
       int code = data['success'];
@@ -106,13 +106,14 @@ class _TambahBKState extends State<TambahBK> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(244, 244, 244, 1),
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Color.fromARGB(255, 41, 69, 91),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Container(
                 child: Text(
-                  "Tambah Barang keluar",
+                  "Tambah Barang Keluar",
                   style: TextStyle(color: Colors.white, fontSize: 20.0),
                 ),
               )
@@ -124,10 +125,10 @@ class _TambahBKState extends State<TambahBK> {
           child: ListView(
             padding: EdgeInsets.all(16.0),
             children: <Widget>[
-              FutureBuilder<List<TujuanModel>>(
+              FutureBuilder<List<BarangModel>>(
                 future: _fetchBR(),
                 builder: (BuildContext context,
-                    AsyncSnapshot<List<TujuanModel>> snapshot) {
+                    AsyncSnapshot<List<BarangModel>> snapshot) {
                   if (!snapshot.hasData) return CircularProgressIndicator();
                   return Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -141,21 +142,27 @@ class _TambahBKState extends State<TambahBK> {
                       child: DropdownButtonHideUnderline(
                           child: DropdownButton(
                         items: snapshot.data!
-                            .map((listT) => DropdownMenuItem(
-                                  child: Text(listT.tujuan.toString()),
-                                  value: listT,
+                            .map((listBR) => DropdownMenuItem(
+                                  child: Text(listBR.nama_barang.toString() +
+                                      " ( " +
+                                      listBR.nama_brand.toString() +
+                                      " )"),
+                                  value: listBR,
                                 ))
                             .toList(),
-                        onChanged: (TujuanModel? value) {
+                        onChanged: (BarangModel? value) {
                           setState(() {
-                            _currentT = value;
-                            Tjuan = _currentT!.id_tujuan;
+                            _currentBR = value;
+                            Barang = _currentBR!.id_barang;
                           });
                         },
                         isExpanded: true,
-                        hint: Text(Tjuan == null
-                            ? "Pilih Tujuan transaksi"
-                            : _currentT!.tujuan.toString()),
+                        hint: Text(Barang == null
+                            ? "Pilih Barang"
+                            : _currentBR!.nama_barang.toString() +
+                                " ( " +
+                                _currentBR!.nama_brand.toString() +
+                                " )"),
                       )));
                 },
               ),
@@ -165,15 +172,15 @@ class _TambahBKState extends State<TambahBK> {
               TextFormField(
                 validator: (e) {
                   if ((e as dynamic).isEmpty) {
-                    return "Silahkan isi Keterangan";
+                    return "Silahkan isi Jumlah";
                   }
                 },
-                onSaved: (e) => Ket = e,
-                focusNode: KtFocusNode,
+                onSaved: (e) => Jumlah = e,
+                focusNode: JmFocusNode,
                 decoration: InputDecoration(
-                  labelText: 'Keterangan',
+                  labelText: 'Jumlah Barang',
                   labelStyle: TextStyle(
-                      color: KtFocusNode.hasFocus
+                      color: JmFocusNode.hasFocus
                           ? Colors.blue
                           : Color.fromARGB(255, 32, 54, 70)),
                   border: OutlineInputBorder(

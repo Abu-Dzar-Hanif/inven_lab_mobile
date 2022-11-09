@@ -1,11 +1,13 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:inven_lab/Loadingpage.dart';
 import 'dart:convert';
 import 'package:inven_lab/model/BarangModel.dart';
 import 'package:inven_lab/model/api.dart';
+import 'package:inven_lab/view/barang/DetailBarang.dart';
 import 'package:inven_lab/view/barang/EditBarang.dart';
 import 'package:inven_lab/view/barang/TambahBarang.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,8 +42,15 @@ class _DataBarangState extends State<DataBarang> {
     } else {
       final data = jsonDecode(response.body);
       data.forEach((api) {
-        final ab = new BarangModel(api['no'], api['id_barang'],
-            api['nama_barang'], api['nama_jenis'], api['nama_brand']);
+        final ab = new BarangModel(
+            api['no'],
+            api['id_barang'],
+            api['nama_barang'],
+            api['nama_jenis'],
+            api['nama_brand'],
+            api['foto'],
+            api['id_jenis'],
+            api['id_brand']);
         list.add(ab);
       });
       setState(() {
@@ -91,6 +100,7 @@ class _DataBarangState extends State<DataBarang> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 41, 69, 91),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -132,33 +142,66 @@ class _DataBarangState extends State<DataBarang> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             ListTile(
-                              title: Text(
-                                x.nama_barang.toString() +
-                                    " ( " +
-                                    x.nama_brand.toString() +
-                                    " )",
+                              leading: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: 44,
+                                  minHeight: 44,
+                                  maxWidth: 64,
+                                  maxHeight: 64,
+                                ),
+                                child: Image.network(
+                                  BaseUrl.path + x.foto.toString(),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                              trailing: Wrap(
-                                children: [
+                              title: Text(
+                                x.nama_barang.toString(),
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                IconButton(
+                                  onPressed: () {
+                                    // edit
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DetailBarang(x, _lihatData)));
+                                  },
+                                  icon: FaIcon(
+                                    FontAwesomeIcons.eye,
+                                    color: Colors.grey,
+                                  ),
+                                  iconSize: 20,
+                                ),
+                                SizedBox(width: 8),
+                                IconButton(
+                                    onPressed: () {
+                                      // edit
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditBarang(x, _lihatData)));
+                                    },
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.grey,
+                                    )),
+                                SizedBox(width: 8),
+                                if (LvlUsr == "1") ...[
                                   IconButton(
                                       onPressed: () {
-                                        // edit
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditBarang(x, _lihatData)));
+                                        // delete
+                                        _proseshapus(x.id_barang);
                                       },
-                                      icon: Icon(Icons.edit)),
-                                  if (LvlUsr == "1") ...[
-                                    IconButton(
-                                        onPressed: () {
-                                          // delete
-                                          _proseshapus(x.id_barang);
-                                        },
-                                        icon: Icon(Icons.delete))
-                                  ],
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: Colors.grey,
+                                      ))
                                 ],
-                              ),
+                                SizedBox(width: 8),
+                              ],
                             ),
                           ],
                         ),
